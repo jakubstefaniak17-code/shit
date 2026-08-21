@@ -1,0 +1,57 @@
+export const runData = {
+  run: {
+    runId: "8185ee7d2af8cf421fb1a991",
+    datasetId: "trading-fixture-v1",
+    configHash: "b63bdb3b8f39e51b787ef05b1d9713fbe1c3932fa9377f512cbdcbcad9061452",
+    codeCommit: "86406c1867bb1e43d214e4dad735e81b9badb8e1",
+    randomSeed: 42,
+    status: "COMPLETE",
+    eventCount: 48,
+    ledgerEntryCount: 89,
+  },
+  events: Array.from({ length: 16 }, (_, index) => ({
+    timestamp: `2024-01-02T09:${String(30 + index).padStart(2, "0")}:00+00:00`,
+    symbol: "AAPL",
+    open: 99 + index,
+    high: 101 + index,
+    low: 99 + index,
+    close: 100 + index,
+    volume: 1000 + index * 100,
+  })),
+  features: {
+    return_1m: "0.00877193", return_5m: "0.04545455", return_15m: "0.15000000", return_1d: "0.04545455",
+    rolling_volatility: "0.00011278", VWAP_distance: "0.05781866", relative_volume: "1.13636364",
+    volume_zscore: "2.12132034", market_relative_return: "0.00635062", sector_relative_return: "0.00407709",
+    rolling_beta: "13.46995674", residual_return: "-0.02384298",
+  },
+  portfolio: {
+    cash: "93948.23993950", positions: [{ symbol: "AAPL", quantity: "55", lastPrice: "115.02300115", value: "6326.26506325" }],
+    nav: "100274.50500275", realizedPnl: "0", unrealizedPnl: "275.05500275", grossExposure: "6326.26506325",
+    netExposure: "6326.26506325", currentDrawdown: "0", riskState: "GREEN / NORMAL",
+  },
+  metrics: {
+    grossPnl: "275.05500275", costs: "0.55", netPnl: "274.50500275", totalReturn: "0.00274505",
+    maximumDrawdown: "0.00000050", turnover: "0.06045684", tradeCount: 11,
+    cagr: null, sharpe: null, sortino: null, calmar: null, profitFactor: null, expectancy: null, winRate: null,
+  },
+  strategies: [
+    { id: "momentum", name: "Momentum", status: "NORMAL", signals: 11, intents: 11, trades: 11, netPnl: "274.50500275", costs: "0.55" },
+    { id: "mean_reversion", name: "Mean Reversion", status: "NORMAL", signals: 0, intents: 0, trades: 0, netPnl: null, costs: null },
+    { id: "vwap_reversion", name: "VWAP Reversion", status: "NORMAL", signals: 0, intents: 0, trades: 0, netPnl: null, costs: null },
+    { id: "residual_reversal", name: "Residual Reversal", status: "NORMAL", signals: 0, intents: 0, trades: 0, netPnl: null, costs: null },
+  ],
+  decision: {
+    traceId: "trace-aapl-0935", timestamp: "2024-01-02T09:35:00+00:00", symbol: "AAPL", side: "BUY",
+    explanation: "AAPL moved strongly over the configured five-minute momentum window; the strategy proposed following that observed direction.",
+    reasonCodes: ["return_5m_threshold"], signalScore: "0.05", expectedAlpha: "0.05", desiredQty: "10", requestedQty: "10",
+    riskDecision: "PASS", approvedQty: "10", orderId: "6f38909c903ac86b", orderType: "MARKET", orderStatus: "PARTIALLY_FILLED",
+    execution: "PARTIAL", bid: "104.9895", ask: "105.0105", slippageBps: "1", latencyMs: 10,
+    fillId: "cf15ca1dcb78f84e", fillQty: "5", fillPrice: "105.02100105", fee: "0.05", pnl: "-0.05",
+    ledger: ["ORDER", "FILL", "CASH_CHANGE", "POSITION_CHANGE", "FEE", "REALIZED_PNL", "UNREALIZED_PNL", "NAV"],
+  },
+  config: {
+    environment: "development", seed: 42, startingCash: "100000", baseCurrency: "USD", frequency: "1min",
+    maxPositionWeight: "0.20", maxGrossExposure: "1.0", maxNetExposure: "0.50", maxOrderNotional: "5000",
+    maxDailyLoss: "5000", maxDrawdown: "0.20", maxTurnover: "100000", spreadBps: "2", slippageBps: "1", latencyMs: 10,
+  },
+} as const;
