@@ -11,6 +11,7 @@ dependencies = []
 
 [project.scripts]
 wealth-os-demo = "wealth_os.demo:main"
+wealth-os-trading-demo = "wealth_os.trading_demo:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]
