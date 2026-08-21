@@ -1,11 +1,13 @@
 from datetime import datetime, timedelta
 from decimal import Decimal
 from pathlib import Path
+import json
 
 from wealth_os.clock import ReplayClock
 from wealth_os.ledger import LedgerEntryType, make_ledger_entry
 from wealth_os.observability import AuditTrailBuilder, EquityCurveBuilder, EvidenceStatus, MetricsCalculator
 from wealth_os.observation_api import ObservationApi
+from wealth_os.observation_export import build_observation_timeline
 from wealth_os.replay_controller import ReplayController
 
 from test_features_strategies import trading_dataset
@@ -73,6 +75,8 @@ def test_observation_api_agrees_with_runtime_ledger_and_is_reproducible() -> Non
     dataset = trading_dataset()
     result = runtime_result()
     controller = ReplayController(dataset.events, ReplayClock(dataset.events[0].timestamp, dataset.events[-1].timestamp))
+    while controller.state().event_index < len(dataset.events) - 1:
+        controller.next_event()
     snapshot_one = ObservationApi.build(result, dataset, controller.state(), {"seed": 42})
     snapshot_two = ObservationApi.build(runtime_result(), dataset, controller.state(), {"seed": 42})
     assert snapshot_one == snapshot_two
@@ -82,12 +86,28 @@ def test_observation_api_agrees_with_runtime_ledger_and_is_reproducible() -> Non
     assert snapshot_one.decisions[0].simple.why == snapshot_one.decisions[0].advanced.explanation.human_readable_explanation
 
 
+def test_observation_api_projects_only_state_visible_at_replay_cursor() -> None:
+    dataset = trading_dataset()
+    result = runtime_result()
+    controller = ReplayController(dataset.events, ReplayClock(dataset.events[0].timestamp, dataset.events[-1].timestamp))
+    start = ObservationApi.build(result, dataset, controller.state(), {"seed": 42})
+    assert start.portfolio["positions"] == {}
+    assert len(start.ledger) == 1
+    while controller.state().event_index < len(dataset.events) - 1:
+        controller.next_event()
+    end = ObservationApi.build(result, dataset, controller.state(), {"seed": 42})
+    assert end.portfolio["positions"] == {symbol: str(quantity) for symbol, quantity in result.portfolio.positions.items()}
+    assert len(end.ledger) == len(result.ledger_entries)
+
+
 def test_ui_fixture_values_match_runtime_and_ledger_source_of_truth() -> None:
     result = runtime_result()
-    ui_data = (Path(__file__).parents[1] / "ui" / "app" / "run-data.ts").read_text(encoding="utf-8")
-    assert result.metadata.run_id in ui_data
-    assert result.metadata.config_hash in ui_data
-    assert str(result.portfolio.cash) in ui_data
-    assert str(result.portfolio.nav) in ui_data
-    assert str(result.portfolio.unrealized_pnl) in ui_data
-    assert f'tradeCount: {len(result.fills)}' in ui_data
+    path = Path(__file__).parents[1] / "ui" / "app" / "run-data.json"
+    ui_data = json.loads(path.read_text(encoding="utf-8"))
+    commit = ui_data["snapshots"][-1]["run"]["code_commit"]
+    assert ui_data == build_observation_timeline(commit)
+    final = ui_data["snapshots"][-1]
+    assert final["portfolio"]["cash"] == str(result.portfolio.cash)
+    assert final["portfolio"]["nav"] == str(result.portfolio.nav)
+    assert final["portfolio"]["unrealized_pnl"] == str(result.portfolio.unrealized_pnl)
+    assert final["metrics"]["trade_count"]["value"] == len(result.fills)

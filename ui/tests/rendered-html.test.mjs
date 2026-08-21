@@ -24,15 +24,16 @@ test("server renders the WEALTH OS observation interface", async () => {
 });
 
 test("UI values are traceable to the deterministic fixture and expose uncertainty", async () => {
-  const data = await readFile(new URL("../app/run-data.ts", import.meta.url), "utf8");
+  const data = await readFile(new URL("../app/run-data.json", import.meta.url), "utf8");
   const page = await readFile(new URL("../app/page.tsx", import.meta.url), "utf8");
-  assert.match(data, /8185ee7d2af8cf421fb1a991/);
   assert.match(data, /100274\.50500275/);
   assert.match(data, /275\.05500275/);
   assert.match(page, /INSUFFICIENT DATA/);
   assert.match(page, /Decision View|DECISION TRACE/);
-  assert.match(page, /RAW AUDIT TRACE/);
+  assert.match(page, /LEDGER \/ P&amp;L|LEDGER \/ P&L/);
   assert.match(page, /FACT/);
   assert.match(page, /UNCERTAINTY/);
+  assert.match(page, /run-data\.json/);
+  assert.doesNotMatch(page, /run-data\.ts/);
   await assert.rejects(access(new URL("../app/_sites-preview/SkeletonPreview.tsx", import.meta.url)));
 });
