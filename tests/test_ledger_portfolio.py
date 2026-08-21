@@ -39,3 +39,33 @@ def test_cash_and_state_reconstruct_identically_from_history() -> None:
     assert one.positions == {"AAPL": Decimal("2")}
     assert one.nav == Decimal("100235")
     assert one.unrealized_pnl == Decimal("20")
+
+
+def test_portfolio_state_cannot_be_mutated_outside_ledger() -> None:
+    state = PortfolioProjector.reconstruct(
+        (entry(LedgerEntryType.DEPOSIT, 0, "100"),),
+        {"AAPL": Decimal("10")},
+    )
+    with pytest.raises(TypeError):
+        state.positions["AAPL"] = Decimal("1")  # type: ignore[index]
+    with pytest.raises(TypeError):
+        state.last_prices["AAPL"] = Decimal("11")  # type: ignore[index]
+
+
+def test_explicit_zero_unrealized_pnl_is_not_replaced_by_calculation() -> None:
+    history = (
+        entry(LedgerEntryType.POSITION_CHANGE, 0, symbol="AAPL", quantity=Decimal("1"), price=Decimal("100")),
+        entry(LedgerEntryType.UNREALIZED_PNL, 1, "0"),
+    )
+    state = PortfolioProjector.reconstruct(history, {"AAPL": Decimal("110")})
+    assert state.unrealized_pnl == Decimal("0")
+
+
+def test_partial_position_reduction_preserves_remaining_cost_basis() -> None:
+    history = (
+        entry(LedgerEntryType.POSITION_CHANGE, 0, symbol="AAPL", quantity=Decimal("2"), price=Decimal("100")),
+        entry(LedgerEntryType.POSITION_CHANGE, 1, symbol="AAPL", quantity=Decimal("-1"), price=Decimal("120")),
+    )
+    state = PortfolioProjector.reconstruct(history, {"AAPL": Decimal("110")})
+    assert state.positions == {"AAPL": Decimal("1")}
+    assert state.unrealized_pnl == Decimal("10")
