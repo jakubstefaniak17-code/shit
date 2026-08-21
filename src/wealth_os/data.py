@@ -22,6 +22,18 @@ class DatasetMetadata:
     created_at: datetime
     hash: str = ""
 
+    def __post_init__(self) -> None:
+        if not self.dataset_id or not self.source or not self.frequency or not self.adjustment_version:
+            raise ValueError("Dataset identity, source, frequency and adjustment version are required")
+        if not self.symbols or any(not symbol for symbol in self.symbols):
+            raise ValueError("Dataset must declare at least one non-empty symbol")
+        if len(set(self.symbols)) != len(self.symbols):
+            raise ValueError("Dataset metadata contains duplicate symbols")
+        if self.start_date.tzinfo is None or self.end_date.tzinfo is None or self.created_at.tzinfo is None:
+            raise ValueError("Dataset metadata timestamps must be timezone-aware")
+        if self.start_date > self.end_date:
+            raise ValueError("Dataset start_date must not be after end_date")
+
     def with_computed_hash(self, rows: tuple[tuple[str, ...], ...]) -> "DatasetMetadata":
         unsigned = replace(self, hash="")
         return replace(self, hash=stable_hash({"metadata": unsigned, "rows": rows}))
