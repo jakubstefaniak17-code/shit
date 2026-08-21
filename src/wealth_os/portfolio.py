@@ -22,7 +22,7 @@ class PortfolioProjector:
     """Builds a replaceable view. The ledger remains the financial source of truth."""
 
     @staticmethod
-    def reconstruct(entries: tuple[LedgerEntry, ...], last_prices: dict[str, Decimal] | None = None) -> PortfolioState:
+    def reconstruct(entries: tuple[LedgerEntry, ...], last_prices: dict[str, Decimal] | None = None, *, respect_recorded_marks: bool = True) -> PortfolioState:
         cash = Decimal("0")
         positions: dict[str, Decimal] = {}
         cost_basis: dict[str, Decimal] = {}
@@ -65,8 +65,8 @@ class PortfolioProjector:
         market_value = sum((quantity * prices.get(symbol, Decimal("0")) for symbol, quantity in positions.items()), Decimal("0"))
         calculated_unrealized = market_value - sum(cost_basis.values(), Decimal("0"))
         calculated_nav = cash + market_value
-        nav = recorded_nav if recorded_nav is not None else calculated_nav
-        unrealized = recorded_unrealized if recorded_unrealized is not None else calculated_unrealized
+        nav = recorded_nav if respect_recorded_marks and recorded_nav is not None else calculated_nav
+        unrealized = recorded_unrealized if respect_recorded_marks and recorded_unrealized is not None else calculated_unrealized
         return PortfolioState(
             cash,
             MappingProxyType(dict(positions)),
