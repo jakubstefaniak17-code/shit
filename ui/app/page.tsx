@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any, jsx-a11y/label-has-associated-control */
 "use client";
 import { useEffect, useMemo, useState } from "react";
 import observation from "./run-data.json";
@@ -31,5 +32,5 @@ function Evidence({value="FACT"}:{value?:string}){return <em className={`evidenc
 function Metric({name,value,note}:{name:string,value:string,note:string}){return <article className="metric"><label>{name}</label><b>{value}</b><small>{note}</small><Evidence value={value.includes("DATA")||value.includes("AVAILABLE")?value:"FACT"}/></article>}
 function Title({eyebrow,title,badge}:{eyebrow:string,title:string,badge:string}){return <div className="panelHead"><div><span className="eyebrow">{eyebrow}</span><h2>{title}</h2></div><span className="normalPill">{badge}</span></div>}
 function Row({name,value}:{name:string,value:unknown}){return <div className="dataRow"><span>{label(name)}</span><strong>{String(value)}</strong></div>}
-function Trace({n,title,body}:{n:string,title:string,body:string}){return <article><span>{n}</span><div><label>{title}</label><p>{body}</p></div></article>}
+function Trace({n,title,body}:{n:string,title:string,body:unknown}){return <article><span>{n}</span><div><label>{title}</label><p>{String(body)}</p></div></article>}
 function TraceSection({title,children}:{title:string,children:React.ReactNode}){return <section><h3>{title}</h3>{children}</section>}

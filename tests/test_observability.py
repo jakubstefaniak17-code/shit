@@ -100,6 +100,28 @@ def test_observation_api_projects_only_state_visible_at_replay_cursor() -> None:
     assert len(end.ledger) == len(result.ledger_entries)
 
 
+def test_observation_projection_respects_same_timestamp_sequence_and_fill_latency() -> None:
+    dataset = trading_dataset()
+    result = runtime_result()
+    controller = ReplayController(dataset.events, ReplayClock(dataset.events[0].timestamp, dataset.events[-1].timestamp))
+    while controller.state().event_index < 14:
+        controller.next_event()
+    before = ObservationApi.build(result, dataset, controller.state(), {"seed": 42})
+    assert before.market["event"]["sequence"] == 14
+    assert before.portfolio["positions"] == {}
+    assert not before.decisions
+    assert all(entry["entry_type"] != "fill" for entry in before.ledger)
+
+    controller.next_event()
+    after = ObservationApi.build(result, dataset, controller.state(), {"seed": 42})
+    assert after.market["event"]["sequence"] == 15
+    assert after.portfolio["positions"] == {"AAPL": "5"}
+    assert after.decisions
+    fill = after.decisions[0].advanced.fill
+    assert fill.timestamp > after.decisions[0].advanced.market_event.timestamp
+    assert any(entry["entry_type"] == "fill" for entry in after.ledger)
+
+
 def test_ui_fixture_values_match_runtime_and_ledger_source_of_truth() -> None:
     result = runtime_result()
     path = Path(__file__).parents[1] / "ui" / "app" / "run-data.json"
