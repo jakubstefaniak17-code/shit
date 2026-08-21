@@ -17,6 +17,10 @@ class LedgerEntryType(str, Enum):
     REALIZED_PNL = "realized_pnl"
     UNREALIZED_PNL = "unrealized_pnl"
     NAV = "nav"
+    ORDER = "order"
+    FILL = "fill"
+    EXECUTION_COST = "execution_cost"
+    TAX = "tax"
 
 
 @dataclass(frozen=True, slots=True)

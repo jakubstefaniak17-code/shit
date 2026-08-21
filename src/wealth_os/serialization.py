@@ -14,7 +14,7 @@ from typing import Any
 
 def to_primitive(value: Any) -> Any:
     if dataclasses.is_dataclass(value):
-        return {field.name: to_primitive(getattr(value, field.name)) for field in dataclasses.fields(value)}
+        return {field.name: to_primitive(getattr(value, field.name)) for field in dataclasses.fields(value) if field.metadata.get("serialize", True)}
     if isinstance(value, Mapping):
         return {str(key): to_primitive(item) for key, item in sorted(value.items(), key=lambda pair: str(pair[0]))}
     if isinstance(value, (list, tuple)):
