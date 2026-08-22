@@ -10,7 +10,7 @@ from .data import MarketDataset
 from .execution import ExecutionConfig, ExecutionResult, ExecutionSimulator, Fill, Quote
 from .features import FeatureConfig, FeatureEngine, FeatureSnapshot
 from .intents import TradeIntent
-from .ledger import AppendOnlyLedger, LedgerEntryType, make_ledger_entry
+from .ledger import AppendOnlyLedger, LedgerEntry, LedgerEntryType, make_ledger_entry
 from .orders import Order, OrderFactory, OrderType
 from .policy import PortfolioPolicy, PortfolioPolicyConfig, PortfolioRequest
 from .portfolio import PortfolioProjector, PortfolioState
@@ -44,6 +44,7 @@ class TradingRunResult:
     orders: tuple[Order, ...]
     executions: tuple[ExecutionResult, ...]
     fills: tuple[Fill, ...]
+    ledger_entries: tuple[LedgerEntry, ...]
     ledger_entry_ids: tuple[str, ...]
     portfolio: PortfolioState
 
@@ -135,4 +136,4 @@ class TradingRuntime:
             bus.publish(event)
         clock.pause()
         portfolio = PortfolioProjector.reconstruct(ledger.entries, last_prices)
-        return TradingRunResult(metadata, tuple(snapshots), tuple(intents), tuple(requests), tuple(assessments), tuple(orders), tuple(executions), tuple(fills), tuple(entry.entry_id for entry in ledger.entries), portfolio)
+        return TradingRunResult(metadata, tuple(snapshots), tuple(intents), tuple(requests), tuple(assessments), tuple(orders), tuple(executions), tuple(fills), ledger.entries, tuple(entry.entry_id for entry in ledger.entries), portfolio)

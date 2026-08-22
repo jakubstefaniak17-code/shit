@@ -21,7 +21,7 @@ def _commit() -> str:
         return "uncommitted"
 
 
-def main() -> None:
+def build_demo_run(code_commit: str | None = None):
     root = Path(__file__).resolve().parents[2]
     start = datetime.fromisoformat("2024-01-02T09:30:00+00:00")
     end = datetime.fromisoformat("2024-01-02T09:45:00+00:00")
@@ -32,7 +32,24 @@ def main() -> None:
     trading = TradingRuntimeConfig(Decimal("2"), Decimal("5"), ExecutionConfig(Decimal("1"), 10, Decimal("0.01")), limits)
     strategy = MomentumStrategy(StrategyConfig(Decimal("0.001"), Decimal("10"), Decimal("0.5"), "15m", ("AAPL",)))
     feature_config = FeatureConfig(5, 5, 5, 5, "SPY", (("AAPL", "XLK"),))
-    result = TradingRuntime(config, trading, dataset, _commit(), strategy, feature_config).run()
+    result = TradingRuntime(config, trading, dataset, code_commit or _commit(), strategy, feature_config).run()
+    return result, dataset, config.snapshot() | {
+        "spread_bps": trading.spread_bps,
+        "slippage_bps": trading.execution.slippage_bps,
+        "latency_ms": trading.execution.latency_ms,
+        "max_position_weight": limits.max_position_weight,
+        "max_gross_exposure": limits.max_gross_exposure,
+        "max_net_exposure": limits.max_net_exposure,
+        "max_order_notional": limits.max_order_notional,
+        "max_daily_loss": limits.max_daily_loss,
+        "max_drawdown": limits.max_drawdown,
+        "max_turnover": limits.max_turnover,
+    }
+
+
+def main() -> None:
+    result, dataset, config_snapshot = build_demo_run()
+    start, end = dataset.metadata.start_date, dataset.metadata.end_date
     first_intent = result.intents[0]
     first_features = next(snapshot for snapshot in result.features if snapshot.timestamp == first_intent.timestamp and snapshot.symbol == first_intent.symbol)
     first_request, first_risk, first_order, first_execution = result.requests[0], result.assessments[0], result.orders[0], result.executions[0]
@@ -48,7 +65,7 @@ def main() -> None:
     print(f"PORTFOLIO\nrequested_qty={first_request.requested_qty}\n")
     print(f"RISK\n{first_risk.decision.value.upper()} approved_qty={first_risk.approved_qty}\n")
     print(f"ORDER\n{first_order.order_id} status={first_order.status.value} qty={first_order.qty}\n")
-    print(f"EXECUTION\n{first_execution.outcome.value} latency_ms={trading.execution.latency_ms}\n")
+    print(f"EXECUTION\n{first_execution.outcome.value} latency_ms={config_snapshot['latency_ms']}\n")
     print(f"FILL\n{first_fill.fill_id} qty={first_fill.qty} price={first_fill.price} fee={first_fill.fee}\n")
     print(f"LEDGER\nentries={len(result.ledger_entry_ids)}\n")
     print(f"PORTFOLIO STATE\ncash={result.portfolio.cash} positions={dict(result.portfolio.positions)} NAV={result.portfolio.nav}\n")

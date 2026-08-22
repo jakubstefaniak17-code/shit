@@ -26,7 +26,9 @@ class FillSettlement:
         )
         for entry in entries:
             ledger.append(entry)
-        state = PortfolioProjector.reconstruct(ledger.entries, last_prices)
+        # Compute a fresh mark after this fill. Prior NAV/P&L ledger marks remain audit
+        # history and must not override the new point-in-time calculation.
+        state = PortfolioProjector.reconstruct(ledger.entries, last_prices, respect_recorded_marks=False)
         ledger.append(make_ledger_entry(entry_type=LedgerEntryType.REALIZED_PNL, timestamp=fill.timestamp, sequence=sequence + 4, amount=Decimal("0"), description=fill.fill_id))
         ledger.append(make_ledger_entry(entry_type=LedgerEntryType.UNREALIZED_PNL, timestamp=fill.timestamp, sequence=sequence + 5, amount=state.unrealized_pnl, description=fill.fill_id))
         ledger.append(make_ledger_entry(entry_type=LedgerEntryType.NAV, timestamp=fill.timestamp, sequence=sequence + 6, amount=state.nav, description=fill.fill_id))

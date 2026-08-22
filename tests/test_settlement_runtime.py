@@ -49,6 +49,9 @@ def test_complete_trading_loop_is_reproducible_and_fill_drives_position() -> Non
     assert first.intents and first.orders and first.fills
     assert first.portfolio.positions["AAPL"] == sum((fill.qty if fill.side is Side.BUY else -fill.qty for fill in first.fills), Decimal("0"))
     assert all(fill.qty <= order.qty for fill, order in zip(first.fills, first.orders))
+    total_fees = sum((fill.fee for fill in first.fills), Decimal("0"))
+    assert first.portfolio.nav == first.portfolio.cash + first.portfolio.positions["AAPL"] * first.portfolio.last_prices["AAPL"]
+    assert first.portfolio.nav - Decimal("100000") == first.portfolio.unrealized_pnl - total_fees
 
 
 def test_trading_parameters_are_part_of_config_hash_and_result_identity() -> None:

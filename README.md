@@ -6,7 +6,9 @@ WEALTH OS is being built toward version 0.1: a closed-loop inside trading system
 
 **0.1-A — Foundation & State: complete.** It supplies deterministic replay, event ordering, versioned datasets, append-only ledger and reconstructable state.
 
-**0.1-B — Trading Core: implemented on the current development branch.** It adds the first closed, deterministic decision and execution loop.
+**0.1-B — Trading Core: complete.** It adds the first closed, deterministic decision and execution loop.
+
+**0.1-C — Observe & Validate: implemented on the current development branch.** It adds ledger-based metrics, NAV history, audit and explainability models, deterministic replay controls, and the first research UI.
 
 ## Trading Core flow
 
@@ -83,15 +85,31 @@ python -m wealth_os.trading_demo
 
 This uses a synthetic, explicitly labelled fixture to show actual feature, Momentum intent, risk, order, partial/full fill, ledger and reconstructed portfolio flow. It does not manufacture a target profit.
 
+## 0.1-C observation layer
+
+The observation API builds read-only views from the completed run and ledger:
+
+- run metrics with explicit `INSUFFICIENT_DATA` states;
+- deterministic cash, position value, NAV, P&L and drawdown history;
+- complete `DecisionTrace` records from MarketEvent through ledger and P&L;
+- deterministic, template-based strategy explanations using real feature values;
+- SIMPLE and ADVANCED decision representations;
+- ReplayController APIs for play, pause, step, previous/next event, and 1×/10×/100×/MAX speed.
+
+The UI lives in `ui/` and contains HOME, MARKET, STRATEGY ARENA, PORTFOLIO, SYSTEM and Decision View. It is a read-only research surface; the ledger remains the financial source of truth.
+
+From `ui/`, install dependencies and run the configured development command for a local interface. The production validation command is the project `build` script.
+
 ## Project map
 
 - `src/wealth_os/` — configuration, event, replay, data, ledger, portfolio and runtime code;
 - `data/fixtures/` — synthetic test-only OHLCV input;
 - `tests/` — invariants and reproducibility contract;
 - `docs/adr/` — architecture decision records.
+- `ui/` — WEALTH OS Observe & Validate research interface.
 
 The four direction-setting project documents named in the briefs were not present in the initially empty repository. When they are added, they belong under `docs/` and remain authoritative over implementation choices. Any conflict should be documented as a proposed deviation rather than silently changing those documents.
 
 ## Current boundaries
 
-0.1-B contains four transparent baseline strategies: Momentum, Mean Reversion, VWAP Reversion and Residual Reversal. It has no final UI, dashboards, ML, Regime Engine, Meta Allocator, Portfolio Optimizer, live or paper broker, real capital, L2/L3 market twin, queue model, impact model, TCA, cloud deployment or 0.1-C functionality. Execution and ledger persistence are in-memory baselines.
+0.1 contains four transparent baseline strategies: Momentum, Mean Reversion, VWAP Reversion and Residual Reversal. The 0.1-C UI is an initial research interface, not the final product design system. There is no ML, Regime Engine, Meta Allocator, Portfolio Optimizer, live or paper broker, real capital, L2/L3 market twin, queue model, impact model or TCA. Execution and ledger persistence remain in-memory baselines. No 0.1-Q functionality is included.
