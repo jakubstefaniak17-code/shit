@@ -16,8 +16,8 @@ const siteUrl = process.env.SITE_URL ?? "http://localhost:3000";
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
-  title: "WEALTH OS — Observe & Validate",
-  description: "A deterministic research interface for observing and auditing the WEALTH OS trading loop.",
+  title: "WEALTH OS — Dynamic Research Runtime",
+  description: "Point-in-time replay of a deterministic WEALTH OS research run over real historical market data.",
   openGraph: {
     title: "WEALTH OS",
     description: "Observe & Validate",

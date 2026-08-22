@@ -53,6 +53,13 @@ class ReplayController:
         self.pause()
         return self.next_event()
 
+    def reset(self) -> ReplayState:
+        self._index = 0
+        self._speed = "1x"
+        self._clock = ReplayClock(self._events[0].timestamp, self._events[-1].timestamp)
+        self._clock.step(self._events[0].timestamp)
+        return self.state()
+
     def set_speed(self, speed: str) -> ReplayState:
         if speed not in self.SPEEDS:
             raise ValueError(f"Unsupported replay speed: {speed}")

@@ -93,14 +93,24 @@ class ObservationApi:
             })
         gross = sum((abs(quantity * portfolio_state.last_prices.get(symbol, Decimal("0"))) for symbol, quantity in portfolio_state.positions.items()), Decimal("0"))
         net = sum((quantity * portfolio_state.last_prices.get(symbol, Decimal("0")) for symbol, quantity in portfolio_state.positions.items()), Decimal("0"))
+        average_prices = {}
+        for symbol in portfolio_state.positions:
+            symbol_fills = tuple(fill for fill in fills if fill.symbol == symbol and fill.side.value == "buy")
+            total_qty = sum((fill.qty for fill in symbol_fills), Decimal("0"))
+            if total_qty:
+                average_prices[symbol] = str(sum((fill.price * fill.qty for fill in symbol_fills), Decimal("0")) / total_qty)
         run = {
             **to_primitive(result.metadata),
             "status": replay.status,
             "event_count": len(dataset.events),
             "ledger_entry_count": len(ledger_entries),
             "result_hash": result.result_hash,
+            "dataset_kind": config_snapshot.get("dataset_kind", "SYNTHETIC TEST FIXTURE"),
+            "dataset_source": dataset.metadata.source,
+            "dataset_frequency": dataset.metadata.frequency,
+            "dataset_hash": dataset.metadata.hash,
         }
         market = {"event": to_primitive(latest_event), "features": to_primitive(latest_feature) if latest_feature else None, "recent_events": to_primitive(dataset.events[max(0, replay.event_index - 9): replay.event_index + 1])}
-        portfolio = {**to_primitive(portfolio_state), "gross_exposure": str(gross), "net_exposure": str(net), "drawdown": str(curve[-1].drawdown if curve else Decimal("0"))}
+        portfolio = {**to_primitive(portfolio_state), "average_prices": average_prices, "gross_exposure": str(gross), "net_exposure": str(net), "drawdown": str(curve[-1].drawdown if curve else Decimal("0"))}
         health = tuple(HealthState(label, "GREEN / NORMAL", "FACT") for label in ("Data Health", "Strategy Health", "Execution Health", "System Health"))
         return ObservationSnapshot(run, replay, market, tuple(strategy_rows), portfolio, tuple(to_primitive(entry) for entry in ledger_entries), metrics, curve, decisions, health, to_primitive(config_snapshot))

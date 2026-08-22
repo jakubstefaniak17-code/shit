@@ -7,7 +7,7 @@ from pathlib import Path
 from .clock import ReplayClock
 from .observation_api import ObservationApi
 from .replay_controller import ReplayController
-from .trading_demo import build_demo_run
+from .real_data_demo import build_real_run
 
 
 def current_commit() -> str:
@@ -20,7 +20,7 @@ def current_commit() -> str:
 
 
 def build_observation_timeline(code_commit: str | None = None) -> dict:
-    result, dataset, config_snapshot = build_demo_run(code_commit or current_commit())
+    result, dataset, config_snapshot, quality, manifest = build_real_run(code_commit or current_commit())
     controller = ReplayController(
         dataset.events,
         ReplayClock(dataset.events[0].timestamp, dataset.events[-1].timestamp),
@@ -35,8 +35,13 @@ def build_observation_timeline(code_commit: str | None = None) -> dict:
         snapshot["decisions"] = snapshot["decisions"][-1:]
         snapshots.append(snapshot)
     return {
-        "schema_version": 1,
+        "schema_version": 2,
         "source": "wealth_os.observation_api.ObservationApi",
+        "dataset": manifest,
+        "data_quality": quality.__dict__ if hasattr(quality, "__dict__") else {
+            "row_count": quality.row_count, "duplicate_count": quality.duplicate_count,
+            "missing_bar_count": quality.missing_bar_count, "passed": quality.passed,
+        },
         "snapshots": snapshots,
     }
 
