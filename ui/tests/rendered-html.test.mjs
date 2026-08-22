@@ -32,6 +32,9 @@ test("UI values are traceable to the deterministic fixture and expose uncertaint
   assert.match(page, /FACT/);
   assert.match(page, /UNCERTAINTY/);
   assert.match(page, /run-data\.json/);
+  assert.match(page, /aria-label="Previous event"/);
+  assert.match(page, /aria-label="Next event"/);
+  assert.match(page, /STEP ▶/);
   assert.doesNotMatch(page, /run-data\.ts/);
   await assert.rejects(access(new URL("../app/_sites-preview/SkeletonPreview.tsx", import.meta.url)));
 });
