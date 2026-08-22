@@ -2,6 +2,8 @@
 
 WEALTH OS is being built toward version 0.1: a closed-loop inside trading system. **0.1-A — Foundation & State** is complete; the current development iteration is **0.1-B — Trading Core**. These are development labels, not separate product releases.
 
+The current branch advances **0.2-A — Dynamic Research Runtime & Real Market Data Foundation**. It adds a provider abstraction, a pinned real historical dataset with an auditable manifest, point-in-time replay projections and a dynamic research UI. See [the 0.2-A data and runtime contract](docs/0.2-a-dynamic-research-data.md).
+
 ## Status
 
 **0.1-A — Foundation & State: complete.** It supplies deterministic replay, event ordering, versioned datasets, append-only ledger and reconstructable state.
