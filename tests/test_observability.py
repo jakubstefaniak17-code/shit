@@ -8,6 +8,7 @@ from wealth_os.ledger import LedgerEntryType, make_ledger_entry
 from wealth_os.observability import AuditTrailBuilder, EquityCurveBuilder, EvidenceStatus, MetricsCalculator
 from wealth_os.observation_api import ObservationApi
 from wealth_os.observation_export import build_observation_timeline
+from wealth_os.real_data_demo import build_real_run
 from wealth_os.replay_controller import ReplayController
 
 from test_features_strategies import trading_dataset
@@ -69,6 +70,8 @@ def test_replay_controller_supports_play_pause_step_previous_next_and_speed() ->
     assert controller.previous_event().event_index == 0
     assert controller.step().event_index == 1
     assert controller.set_speed("100x").speed == "100x"
+    assert controller.reset().event_index == 0
+    assert controller.state().speed == "1x"
 
 
 def test_observation_api_agrees_with_runtime_ledger_and_is_reproducible() -> None:
@@ -123,7 +126,7 @@ def test_observation_projection_respects_same_timestamp_sequence_and_fill_latenc
 
 
 def test_ui_fixture_values_match_runtime_and_ledger_source_of_truth() -> None:
-    result = runtime_result()
+    result, _, _, report, _ = build_real_run("ui-real-data-artifact")
     path = Path(__file__).parents[1] / "ui" / "app" / "run-data.json"
     ui_data = json.loads(path.read_text(encoding="utf-8"))
     commit = ui_data["snapshots"][-1]["run"]["code_commit"]
@@ -133,3 +136,5 @@ def test_ui_fixture_values_match_runtime_and_ledger_source_of_truth() -> None:
     assert final["portfolio"]["nav"] == str(result.portfolio.nav)
     assert final["portfolio"]["unrealized_pnl"] == str(result.portfolio.unrealized_pnl)
     assert final["metrics"]["trade_count"]["value"] == len(result.fills)
+    assert final["run"]["dataset_kind"] == "REAL HISTORICAL DATASET"
+    assert report.passed

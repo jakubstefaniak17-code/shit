@@ -5,3 +5,6 @@ __pycache__/
 *.egg-info/
 dist/
 build/
+data/cache/
+data/market/*.csv
+!data/market/real_historical_sample.csv
